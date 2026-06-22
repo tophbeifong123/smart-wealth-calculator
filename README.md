@@ -1,17 +1,124 @@
-# smart_wealth_calculator
+# 🪙 Smart Wealth Calculator (แอปคำนวณแผนออมทรัพย์ & ดอกเบี้ยทบต้น)
 
-A new Flutter project.
+แอปพลิเคชันคำนวณและวางแผนการเงินส่วนบุคคลระดับพรีเมียม พัฒนาด้วย **Flutter** และ **Dart** ออกแบบมาเพื่อให้ผู้ใช้งานเห็นภาพรวมของความมั่งคั่งและพลังของดอกเบี้ยทบต้นได้อย่างง่ายดายและชัดเจน ผ่านกราฟวิเคราะห์แบบ Interactive และตารางแจกแจงรายปีอย่างละเอียด
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🌟 คุณสมบัติเด่น (Key Features)
 
-A few resources to get you started if this is your first Flutter project:
+1. **📈 เครื่องมือคำนวณดอกเบี้ยทบต้น (Compound Interest Calculator):**
+   - คำนวณการเติบโตของเงินออมจากเงินต้นเริ่มต้นและเงินฝากรายเดือน
+   - ปรับเลือกความถี่ในการทบต้นได้ยืดหยุ่น (รายปี, รายไตรมาส, รายเดือน, รายวัน)
+   - เปรียบเทียบผลลัพธ์ระหว่างการฝากเงินช่วง "ต้นงวด" และ "สิ้นงวด"
+2. **🎯 เครื่องมือวางแผนเป้าหมายการออม (Savings Goal Planner):**
+   - คำนวณจำนวนเงินที่ต้องเก็บออมเพิ่มต่อเดือนเพื่อพิชิตเป้าหมายที่ตั้งไว้
+   - แสดงสัดส่วนเป็นเปอร์เซ็นต์ระหว่างเงินต้นจริงที่ฝากเทียบกับดอกเบี้ยทบต้นที่สะสมเพิ่มขึ้น
+3. **👵 เครื่องมือวางแผนการเงินเกษียณ (Retirement Planner):**
+   - คำนวณหาขนาดของเงินกองทุนเกษียณสะสมที่ควรมีในวันเกษียณ
+   - **ปรับค่าครองชีพตามอัตราเงินเฟ้อ (Inflation-adjusted):** แปลงค่าใช้จ่ายในวันนี้ให้เห็นค่าจริงตามมูลค่าเงินในอนาคต ณ วันเกษียณ
+   - คำนวณเงินออมสะสมช่วงทำงาน และทำแบบจำลองการทยอยถอนเงินใช้อย่างละเอียดจนถึงสิ้นสุดอายุขัย
+4. **🎨 ประสบการณ์ใช้งานระดับพรีเมียม (Premium UX/UI):**
+   - **Dual Themes:** รองรับการสลับสไตล์ระหว่างธีมสว่าง (Light Mode) และธีมมืดพรีเมียม (Dark Mode) ได้ในคลิกเดียว
+   - **Interactive Charts:** กราฟจำลองการสะสมมูลค่าที่สามารถแตะเพื่ออ่านข้อมูลจุดพิกัดแยกแยะเงินต้น/ยอดเงินรวมได้ชัดเจน
+   - **Easy Inputs:** แถบเลื่อนปรับค่า (Slider) ที่สามารถแตะที่ตัวเลขผลลัพธ์เพื่อพิมพ์ข้อความระบุค่าเจาะจงที่แม่นยำได้
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🛠️ ข้อมูลทางเทคนิค (Tech Stack & Dependencies)
+
+- **Framework:** [Flutter SDK](https://flutter.dev) (Channel Stable, แนะนำเวอร์ชัน 3.19.0 ขึ้นไป)
+- **Language:** [Dart](https://dart.dev) (SDK ^3.12.0)
+- **State Management:** [Provider](https://pub.dev/packages/provider) เพื่อแยกแยะ Logic และ UI อย่างมีระเบียบตามรูปแบบ MVVM
+- **Data Visualization:** [fl_chart](https://pub.dev/packages/fl_chart) สำหรับสร้างชาร์ตและกราฟพื้นที่สะสมเงินออม
+- **Fonts & Typography:** [Google Fonts (Prompt)](https://fonts.google.com/specimen/Prompt) ฟอนต์สไตล์โมเดิร์นยอดนิยมสำหรับการแสดงผลภาษาไทย
+- **Formatting:** [Intl](https://pub.dev/packages/intl) สำหรับฟอร์แมตตัวเลข สัดส่วน และสกุลเงินบาท (฿)
+
+---
+
+## 📂 โครงสร้างโฟลเดอร์ของโปรเจกต์ (Project Directory Structure)
+
+```text
+lib/
+├── main.dart                 # ไฟล์จุดเริ่มต้น (Main entry point) และกำหนดสไตล์ธีมแอป
+├── models/                   # เก็บสูตรสมการคำนวณและโครงสร้างข้อมูลทางบัญชี
+│   ├── compound_interest_model.dart
+│   ├── savings_goal_model.dart
+│   └── retirement_model.dart
+├── providers/                # เก็บการจัดการสถานะ (State) และการควบคุมพฤติกรรม (Logic)
+│   └── calculator_provider.dart
+├── screens/                  # หน้าจอส่วนควบคุมหลัก
+│   └── dashboard_screen.dart
+├── theme/                    # ไฟล์โครงสร้างสีและการตกแต่งระบบ
+│   └── app_theme.dart
+└── widgets/                  # วิดเจ็ตประกอบย่อยระดับอะตอมที่นำกลับมาใช้ซ้ำได้
+    ├── breakdown_table.dart  # ตารางแจกแจงรายปีแบบหดขยาย
+    ├── custom_card.dart      # คอนเทนเนอร์การ์ดขอบมนพรีเมียม
+    ├── custom_slider.dart    # แถบสไลด์พร้อมตัวเลือกกรอกด้วยแป้นพิมพ์
+    ├── growth_chart.dart     # ชาร์ตแสดงความคืบหน้ากราฟการเงิน
+    └── result_card.dart      # แถบสรุปผลลัพธ์พร้อมแถบเปรียบเทียบสัดส่วน
+```
+
+---
+
+## 🚀 ขั้นตอนการติดตั้งและรันโปรเจกต์สำหรับทีม (Setup & Installation Guide)
+
+เพื่อให้เพื่อนร่วมทีมสามารถนำโปรเจกต์นี้ไปทำต่อได้ทันที ให้ปฏิบัติตามขั้นตอนต่อไปนี้:
+
+### 1. ความต้องการของระบบเบื้องต้น (Prerequisites)
+- ติดตั้ง **Flutter SDK** เรียบร้อยแล้ว (สามารถรันคำสั่ง `flutter doctor` เพื่อตรวจสอบความพร้อม)
+- ใช้ IDE เช่น **VS Code** หรือ **Android Studio** พร้อมติดตั้ง Extension `Dart` และ `Flutter`
+- ติดตั้ง Git Client สำหรับจัดการเวอร์ชัน
+
+### 2. ดาวน์โหลดโปรเจกต์ (Clone Repository)
+เปิด Terminal บนเครื่องคอมพิวเตอร์ของคุณแล้วรันคำสั่ง:
+```bash
+git clone https://github.com/tophbeifong123/smart-wealth-calculator.git
+cd smart-wealth-calculator
+```
+
+### 3. ดาวน์โหลดแพ็กเกจที่เกี่ยวข้อง (Install Dependencies)
+รันคำสั่งเพื่อดาวน์โหลดและติดตั้งโมดูลจาก pub.dev:
+```bash
+flutter pub get
+```
+
+### 4. ตรวจสอบสภาพโปรเจกต์ (Verify Project Health)
+ตรวจสอบว่าการเขียนโค้ดและส่วนเชื่อมโยงไม่มีข้อผิดพลาดด้วยคำสั่งวิเคราะห์โครงสร้าง:
+```bash
+flutter analyze
+```
+*(ควรได้ผลลัพธ์เป็น No issues found)*
+
+### 5. สั่งรันแอปพลิเคชัน (Run the Application)
+เปิดเครื่องจำลอง (Emulator) หรือเสียบสายอุปกรณ์โทรศัพท์ของคุณ จากนั้นใช้คำสั่ง:
+```bash
+flutter run
+```
+
+---
+
+## 🤝 ข้อพึงปฏิบัติสำหรับการพัฒนาต่อในทีม (Contribution & Git Best Practices)
+
+เพื่อรักษาระเบียบและสุขอนามัยที่ดีของโค้ดในระยะยาว ทีมงานควรทำตามข้อตกลงร่วมกันดังนี้:
+
+### 1. รูปแบบ Commit Message (Conventional Commits)
+เราใช้รูปแบบ Commit เพื่อสร้างบันทึกที่เป็นระเบียบ:
+- `feat: ...` -> เพิ่มฟีเจอร์การคำนวณหรือวิดเจ็ตใหม่ (เช่น `feat: add PDF report export`)
+- `fix: ...` -> แก้ไขข้อผิดพลาดหรือสูตรคำนวณผิดพลาด (เช่น `fix: correct annual effective rate formula`)
+- `docs: ...` -> อัปเดตคู่มือ เอกสาร หรือคำอธิบายประกอบการทำงาน (เช่น `docs: update setup guide in README`)
+- `style: ...` -> การปรับฟอร์แมตโค้ด ช่องว่าง หรือความสวยงามที่ไม่มีผลกับ Logic
+- `refactor: ...` -> การจัดระเบียบโครงสร้างโค้ดภายในโดยที่หน้าที่ของระบบเหมือนเดิม
+
+### 2. การควบคุมความสอดคล้องของรูปแบบโค้ด (Coding Style)
+- ก่อนการ Commit หรือเปิด Pull Request ทุกครั้ง ให้รันคำสั่งฟอร์แมตสไตล์โค้ดอัตโนมัติ:
+  ```bash
+  flutter format .
+  ```
+- หลีกเลี่ยงการปล่อย Warnings ของระบบวิเคราะห์ ให้แก้ให้เรียบร้อยก่อนเปิด PR ด้วย `flutter analyze`
+- ใช้รูปแบบการตั้งชื่อไฟล์เป็น **lowercase_with_underscores** และชื่อคลาสเป็น **UpperCamelCase** ตามคู่มือทางการของ Dart
+
+### 3. การสร้างกิ่งฟีเจอร์แยก (Branching Model)
+- หลีกเลี่ยงการ Commit และ Push ลงสู่กิ่งหลัก `main` โดยตรง
+- กรุณาสร้างกิ่งย่อยสำหรับการเพิ่มงานหรือแก้บั๊กเสมอ เช่น:
+  - `feature/add-currency-selector`
+  - `bugfix/fix-compounding-frequency-bug`
