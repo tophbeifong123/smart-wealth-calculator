@@ -1,6 +1,11 @@
 # 🪙 Smart Wealth Calculator (แอปคำนวณแผนออมทรัพย์ & ดอกเบี้ยทบต้น)
 
-แอปพลิเคชันคำนวณและวางแผนการเงินส่วนบุคคลระดับพรีเมียม พัฒนาด้วย **Flutter** และ **Dart** ออกแบบมาเพื่อให้ผู้ใช้งานเห็นภาพรวมของความมั่งคั่งและพลังของดอกเบี้ยทบต้นได้อย่างง่ายดายและชัดเจน ผ่านกราฟวิเคราะห์แบบ Interactive และตารางแจกแจงรายปีอย่างละเอียด
+[![Flutter Version](https://img.shields.io/badge/Flutter-^3.19.0-blue.svg)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/Dart-^3.12.2-orange.svg)](https://dart.dev)
+[![State Management](https://img.shields.io/badge/State--Management-BLoC%20%2F%20Cubit-green.svg)](https://pub.dev/packages/flutter_bloc)
+[![Licence](https://img.shields.io/badge/license-none-lightgrey.svg)](#)
+
+แอปพลิเคชันคำนวณและวางแผนการเงินส่วนบุคคลระดับพรีเมียม พัฒนาด้วย **Flutter** และ **Dart** ได้รับการออกแบบตามแนวคิดสถาปัตยกรรมระดับสากล **Clean Architecture (Feature-First)** และใช้การจัดการสถานะแบบ **BLoC Pattern** เพื่อความเสถียรและบำรุงรักษาโค้ดในระยะยาวได้ง่าย
 
 ---
 
@@ -18,107 +23,117 @@
    - **ปรับค่าครองชีพตามอัตราเงินเฟ้อ (Inflation-adjusted):** แปลงค่าใช้จ่ายในวันนี้ให้เห็นค่าจริงตามมูลค่าเงินในอนาคต ณ วันเกษียณ
    - คำนวณเงินออมสะสมช่วงทำงาน และทำแบบจำลองการทยอยถอนเงินใช้อย่างละเอียดจนถึงสิ้นสุดอายุขัย
 4. **🎨 ประสบการณ์ใช้งานระดับพรีเมียม (Premium UX/UI):**
-   - **Dual Themes:** รองรับการสลับสไตล์ระหว่างธีมสว่าง (Light Mode) และธีมมืดพรีเมียม (Dark Mode) ได้ในคลิกเดียว
-   - **Interactive Charts:** กราฟจำลองการสะสมมูลค่าที่สามารถแตะเพื่ออ่านข้อมูลจุดพิกัดแยกแยะเงินต้น/ยอดเงินรวมได้ชัดเจน
-   - **Easy Inputs:** แถบเลื่อนปรับค่า (Slider) ที่สามารถแตะที่ตัวเลขผลลัพธ์เพื่อพิมพ์ข้อความระบุค่าเจาะจงที่แม่นยำได้
+   - **Dual Themes:** รองรับการสลับสไตล์ระหว่างธีมสว่าง (Light Mode) และธีมมืดพรีเมียม (Dark Mode) ได้ในคลิกเดียวผ่าน ThemeBloc
+   - **Interactive Charts:** กราฟจำลองการสะสมมูลค่าแบบ Interactive แตะเพื่ออ่านข้อมูลจุดพิกัดเงินต้นและยอดรวมได้
+   - **Easy Inputs:** แถบเลื่อนปรับค่า (Slider) พร้อมทางเลือกแตะตัวเลขผลลัพธ์เพื่อกรอกด้วยแป้นพิมพ์ได้เจาะจง
 
 ---
 
-## 🛠️ ข้อมูลทางเทคนิค (Tech Stack & Dependencies)
+## 🏗️ การออกแบบสถาปัตยกรรมซอฟต์แวร์ (Architecture Design)
 
-- **Framework:** [Flutter SDK](https://flutter.dev) (Channel Stable, แนะนำเวอร์ชัน 3.19.0 ขึ้นไป)
-- **Language:** [Dart](https://dart.dev) (SDK ^3.12.0)
-- **State Management:** [Provider](https://pub.dev/packages/provider) เพื่อแยกแยะ Logic และ UI อย่างมีระเบียบตามรูปแบบ MVVM
-- **Data Visualization:** [fl_chart](https://pub.dev/packages/fl_chart) สำหรับสร้างชาร์ตและกราฟพื้นที่สะสมเงินออม
-- **Fonts & Typography:** [Google Fonts (Prompt)](https://fonts.google.com/specimen/Prompt) ฟอนต์สไตล์โมเดิร์นยอดนิยมสำหรับการแสดงผลภาษาไทย
-- **Formatting:** [Intl](https://pub.dev/packages/intl) สำหรับฟอร์แมตตัวเลข สัดส่วน และสกุลเงินบาท (฿)
+โปรเจกต์นี้ได้รับการปรับปรุงโค้ด (Refactored) จากระบบเดิมขึ้นมาเป็นระบบที่ดีขึ้นตามหลัก **Clean Code** โดยอ้างอิงหลักการดังนี้:
+
+### 1. Feature-First Structure
+แยกโค้ดหลักของโปรแกรมออกตามโมดูลการทำงาน (Features) เพื่อความเป็นเอกเทศและขยายระบบได้ง่าย
+* **Core**: เก็บส่วนกลาง เช่น การจัดการธีมหลักของระบบ
+* **Features**: แยกฟีเจอร์คำนวณ (`calculator`) ออกเป็นของตัวเองอย่างชัดเจน
+
+### 2. Clean Architecture Layering
+ภายในฟีเจอร์จะแยกเป็น 3 ชั้นย่อยเพื่อให้สอดคล้องกับหลักการลบล้างความผูกมัด (Decoupling):
+* **Domain Layer**: เก็บกฎและข้อบังคับทางธุรกิจ (Business Rules) รวมถึงคลาสข้อมูล (Entity/Model) และสัญญากำหนดการทำงานของข้อมูล (Repository Interfaces) ชั้นนี้จะไม่มีการพึ่งพาโมดูลภายนอกเลย
+* **Data Layer**: เป็นผู้ลงมือทำงานจริงตามสัญญาของ Domain (Repository Implementation) เช่น การคำนวณตัวเลขและสถิติสะสมจริง
+* **Presentation Layer**: ส่วนการแสดงผลบนหน้าจอ (UI Pages/Widgets) และการควบคุมสถานะ (BLoC)
 
 ---
 
-## 📂 โครงสร้างโฟลเดอร์ของโปรเจกต์ (Project Directory Structure)
+## 📂 โครงสร้างโฟลเดอร์ใหม่ (Project Directory Structure)
 
 ```text
 lib/
-├── main.dart                 # ไฟล์จุดเริ่มต้น (Main entry point) และกำหนดสไตล์ธีมแอป
-├── models/                   # เก็บสูตรสมการคำนวณและโครงสร้างข้อมูลทางบัญชี
-│   ├── compound_interest_model.dart
-│   ├── savings_goal_model.dart
-│   └── retirement_model.dart
-├── providers/                # เก็บการจัดการสถานะ (State) และการควบคุมพฤติกรรม (Logic)
-│   └── calculator_provider.dart
-├── screens/                  # หน้าจอส่วนควบคุมหลัก
-│   └── dashboard_screen.dart
-├── theme/                    # ไฟล์โครงสร้างสีและการตกแต่งระบบ
-│   └── app_theme.dart
-└── widgets/                  # วิดเจ็ตประกอบย่อยระดับอะตอมที่นำกลับมาใช้ซ้ำได้
-    ├── breakdown_table.dart  # ตารางแจกแจงรายปีแบบหดขยาย
-    ├── custom_card.dart      # คอนเทนเนอร์การ์ดขอบมนพรีเมียม
-    ├── custom_slider.dart    # แถบสไลด์พร้อมตัวเลือกกรอกด้วยแป้นพิมพ์
-    ├── growth_chart.dart     # ชาร์ตแสดงความคืบหน้ากราฟการเงิน
-    └── result_card.dart      # แถบสรุปผลลัพธ์พร้อมแถบเปรียบเทียบสัดส่วน
+├── core/                               # ส่วนกลางที่ใช้ร่วมกันในแอป
+│   └── theme/
+│       ├── app_theme.dart              # คลาสสำหรับจัดการธีม Light/Dark
+│       └── bloc/                       # BLoC สำหรับสลับธีมของแอป
+│           ├── theme_bloc.dart
+│           ├── theme_event.dart
+│           └── theme_state.dart
+├── features/                           # ส่วนของฟีเจอร์การทำงานหลัก
+│   └── calculator/
+│       ├── domain/                     # เลเยอร์เก็บ Model และสัญญา Interface
+│       │   ├── models/                 # ตัวแบบสูตรคำนวณทางการเงิน
+│       │   │   ├── compound_interest_model.dart
+│       │   │   ├── savings_goal_model.dart
+│       │   │   └── retirement_model.dart
+│       │   └── repositories/           # สัญญาการเรียกข้อมูลคำนวณ
+│       │       └── calculator_repository.dart
+│       ├── data/                       # เลเยอร์จัดการประมวลผลข้อมูลจริง
+│       │   └── repositories/           # 구현 (Implementation) ของการคำนวณ
+│       │       └── calculator_repository_impl.dart
+│       └── presentation/               # เลเยอร์จัดการ UI และสถานะหน้าจอ
+│           ├── bloc/                   # เครื่องมือควบคุม Logic ของเครื่องคิดเลข
+│           │   ├── calculator_bloc.dart
+│           │   ├── calculator_event.dart
+│           │   └── calculator_state.dart
+│           ├── pages/                  # หน้าจอหลักแสดงผลตัวสลับแท็บ
+│           │   └── dashboard_page.dart
+│           └── widgets/                # ส่วนประกอบหน้าจอย่อย (Stateless)
+│               ├── breakdown_table.dart
+│               ├── custom_card.dart
+│               ├── custom_slider.dart
+│               ├── growth_chart.dart
+│               └── result_card.dart
+└── main.dart                           # ไฟล์เริ่มต้นโปรแกรมและขึ้นทะเบียน Providers
 ```
 
 ---
 
-## 🚀 ขั้นตอนการติดตั้งและรันโปรเจกต์สำหรับทีม (Setup & Installation Guide)
+## 🛠️ เทคโนโลยีและแพ็กเกจที่เลือกใช้ (Tech Stack)
 
-เพื่อให้เพื่อนร่วมทีมสามารถนำโปรเจกต์นี้ไปทำต่อได้ทันที ให้ปฏิบัติตามขั้นตอนต่อไปนี้:
+- **Framework:** [Flutter SDK](https://flutter.dev) (Channel Stable, แนะนำเวอร์ชัน 3.19.0 ขึ้นไป)
+- **Language:** [Dart](https://dart.dev) (SDK ^3.12.2)
+- **State Management:** [flutter_bloc](https://pub.dev/packages/flutter_bloc) สำหรับแยกแยะ UI และ Logic ด้วยสถาปัตยกรรมแบบ Reactive
+- **Object Equality:** [equatable](https://pub.dev/packages/equatable) ช่วยตรวจจับความเปลี่ยนแปลงของข้อมูลเพื่อป้องกัน Widget Rebuild โดยไม่จำเป็น
+- **Data Visualization:** [fl_chart](https://pub.dev/packages/fl_chart) ชาร์ตกราฟพื้นที่จำลองข้อมูลสะสม
+- **Typography:** [google_fonts](https://pub.dev/packages/google_fonts) ใช้ฟอนต์ Prompt ของภาษาไทย
+- **Formatting:** [intl](https://pub.dev/packages/intl) จัดการแสดงผลตัวเลขและสัญลักษณ์สกุลเงินบาท (฿)
 
-### 1. ความต้องการของระบบเบื้องต้น (Prerequisites)
-- ติดตั้ง **Flutter SDK** เรียบร้อยแล้ว (สามารถรันคำสั่ง `flutter doctor` เพื่อตรวจสอบความพร้อม)
-- ใช้ IDE เช่น **VS Code** หรือ **Android Studio** พร้อมติดตั้ง Extension `Dart` และ `Flutter`
-- ติดตั้ง Git Client สำหรับจัดการเวอร์ชัน
+---
 
-### 2. ดาวน์โหลดโปรเจกต์ (Clone Repository)
-เปิด Terminal บนเครื่องคอมพิวเตอร์ของคุณแล้วรันคำสั่ง:
+## 🚀 ขั้นตอนการติดตั้งและใช้งาน (Setup & Run Guide)
+
+### 1. ดาวน์โหลดโปรเจกต์ (Clone Repository)
 ```bash
 git clone https://github.com/tophbeifong123/smart-wealth-calculator.git
 cd smart-wealth-calculator
 ```
 
-### 3. ดาวน์โหลดแพ็กเกจที่เกี่ยวข้อง (Install Dependencies)
-รันคำสั่งเพื่อดาวน์โหลดและติดตั้งโมดูลจาก pub.dev:
+### 2. ดาวน์โหลดโมดูล (Install Dependencies)
 ```bash
 flutter pub get
 ```
 
-### 4. ตรวจสอบสภาพโปรเจกต์ (Verify Project Health)
-ตรวจสอบว่าการเขียนโค้ดและส่วนเชื่อมโยงไม่มีข้อผิดพลาดด้วยคำสั่งวิเคราะห์โครงสร้าง:
+### 3. รันการทดสอบและวิเคราะห์โค้ด (Testing & Lints)
+ตรวจสอบคุณภาพโค้ดและรัน Widget Test ทั้งหมดเพื่อให้มั่นใจว่าระบบไม่มีบั๊ก:
 ```bash
 flutter analyze
+flutter test
 ```
-*(ควรได้ผลลัพธ์เป็น No issues found)*
 
-### 5. สั่งรันแอปพลิเคชัน (Run the Application)
-เปิดเครื่องจำลอง (Emulator) หรือเสียบสายอุปกรณ์โทรศัพท์ของคุณ จากนั้นใช้คำสั่ง:
+### 4. รันแอปพลิเคชัน (Run App)
 ```bash
 flutter run
 ```
 
 ---
 
-## 🤝 ข้อพึงปฏิบัติสำหรับการพัฒนาต่อในทีม (Contribution & Git Best Practices)
+## 🤝 กฎกติกามารยาทสำหรับงานทีม (Git Best Practices)
 
-เพื่อรักษาระเบียบและสุขอนามัยที่ดีของโค้ดในระยะยาว ทีมงานควรทำตามข้อตกลงร่วมกันดังนี้:
-
-### 1. รูปแบบ Commit Message (Conventional Commits)
-เราใช้รูปแบบ Commit เพื่อสร้างบันทึกที่เป็นระเบียบ:
-- `feat: ...` -> เพิ่มฟีเจอร์การคำนวณหรือวิดเจ็ตใหม่ (เช่น `feat: add PDF report export`)
-- `fix: ...` -> แก้ไขข้อผิดพลาดหรือสูตรคำนวณผิดพลาด (เช่น `fix: correct annual effective rate formula`)
-- `docs: ...` -> อัปเดตคู่มือ เอกสาร หรือคำอธิบายประกอบการทำงาน (เช่น `docs: update setup guide in README`)
-- `style: ...` -> การปรับฟอร์แมตโค้ด ช่องว่าง หรือความสวยงามที่ไม่มีผลกับ Logic
-- `refactor: ...` -> การจัดระเบียบโครงสร้างโค้ดภายในโดยที่หน้าที่ของระบบเหมือนเดิม
-
-### 2. การควบคุมความสอดคล้องของรูปแบบโค้ด (Coding Style)
-- ก่อนการ Commit หรือเปิด Pull Request ทุกครั้ง ให้รันคำสั่งฟอร์แมตสไตล์โค้ดอัตโนมัติ:
+- **Commit Message Format (Conventional Commits)**:
+  - `feat: ...` เพิ่มฟีเจอร์หรือวิดเจ็ตใหม่ (เช่น `feat: add PDF sharing`)
+  - `fix: ...` แก้บั๊กหรือแก้สูตรคำนวณที่ผิดพลาด (เช่น `fix: correct inflation rate calculation`)
+  - `refactor: ...` ปรับปรุงระเบียบโค้ดภายในแต่อุปกรณ์ทำงานเหมือนเดิม
+  - `docs: ...` แก้ไขเอกสารคำอธิบายหรือคู่มือ (เช่น `docs: update README.md`)
+- **Coding Style**: รันคำสั่งนี้เพื่อสแกนและจัดข้อความช่องไฟก่อนทำการ commit เสมอ:
   ```bash
   flutter format .
   ```
-- หลีกเลี่ยงการปล่อย Warnings ของระบบวิเคราะห์ ให้แก้ให้เรียบร้อยก่อนเปิด PR ด้วย `flutter analyze`
-- ใช้รูปแบบการตั้งชื่อไฟล์เป็น **lowercase_with_underscores** และชื่อคลาสเป็น **UpperCamelCase** ตามคู่มือทางการของ Dart
-
-### 3. การสร้างกิ่งฟีเจอร์แยก (Branching Model)
-- หลีกเลี่ยงการ Commit และ Push ลงสู่กิ่งหลัก `main` โดยตรง
-- กรุณาสร้างกิ่งย่อยสำหรับการเพิ่มงานหรือแก้บั๊กเสมอ เช่น:
-  - `feature/add-currency-selector`
-  - `bugfix/fix-compounding-frequency-bug`
