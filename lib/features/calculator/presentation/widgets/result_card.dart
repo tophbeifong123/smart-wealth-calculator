@@ -174,7 +174,7 @@ class ResultCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               const Text(
-                                'ดอกเบี้ยสะสม',
+                                  'ดอกเบี้ยสะสม',
                                 style: TextStyle(fontSize: 12, color: Colors.grey),
                               ),
                             ],

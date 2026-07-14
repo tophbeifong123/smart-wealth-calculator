@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../providers/calculator_provider.dart';
+import '../../../../core/theme/bloc/theme_bloc.dart';
+import '../../../../core/theme/bloc/theme_event.dart';
+import '../bloc/calculator_bloc.dart';
+import '../bloc/calculator_event.dart';
+import '../bloc/calculator_state.dart';
 import '../widgets/custom_card.dart';
 import '../widgets/custom_slider.dart';
 import '../widgets/result_card.dart';
 import '../widgets/growth_chart.dart';
 import '../widgets/breakdown_table.dart';
 
-class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
 
   String _formatCurrency(double value) {
     final formatter = NumberFormat.currency(locale: 'th_TH', symbol: '฿', decimalDigits: 0);
@@ -18,9 +22,10 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<CalculatorProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final themeState = context.watch<ThemeBloc>().state;
+    final calculatorState = context.watch<CalculatorBloc>().state;
+
     return Scaffold(
       appBar: AppBar(
         title: const Row(
@@ -34,10 +39,10 @@ class DashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(
-              provider.themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+              themeState.themeMode == ThemeMode.dark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
               color: const Color(0xFF6366F1),
             ),
-            onPressed: () => provider.toggleTheme(),
+            onPressed: () => context.read<ThemeBloc>().add(ToggleThemeEvent()),
             tooltip: 'เปลี่ยนธีม',
           ),
         ],
@@ -46,7 +51,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           children: [
             // Custom Sliding Segmented Tabs
-            _buildCustomTabBar(context, provider, isDark),
+            _buildCustomTabBar(context, calculatorState, isDark),
             
             // Main Content Area
             Expanded(
@@ -55,7 +60,7 @@ class DashboardScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 24.0),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
-                    child: _buildActiveTabContent(provider, context),
+                    child: _buildActiveTabContent(context, calculatorState),
                   ),
                 ),
               ),
@@ -67,7 +72,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // Beautiful segmented bar
-  Widget _buildCustomTabBar(BuildContext context, CalculatorProvider provider, bool isDark) {
+  Widget _buildCustomTabBar(BuildContext context, CalculatorState state, bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       padding: const EdgeInsets.all(4.0),
@@ -77,9 +82,9 @@ class DashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildTabItem(context, provider, 0, 'ดอกเบี้ยทบต้น', Icons.trending_up, isDark),
-          _buildTabItem(context, provider, 1, 'เป้าหมายออม', Icons.track_changes, isDark),
-          _buildTabItem(context, provider, 2, 'วางแผนเกษียณ', Icons.elderly, isDark),
+          _buildTabItem(context, state, 0, 'ดอกเบี้ยทบต้น', Icons.trending_up, isDark),
+          _buildTabItem(context, state, 1, 'เป้าหมายออม', Icons.track_changes, isDark),
+          _buildTabItem(context, state, 2, 'วางแผนเกษียณ', Icons.elderly, isDark),
         ],
       ),
     );
@@ -87,16 +92,16 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildTabItem(
     BuildContext context,
-    CalculatorProvider provider,
+    CalculatorState state,
     int index,
     String label,
     IconData icon,
     bool isDark,
   ) {
-    final isSelected = provider.activeTab == index;
+    final isSelected = state.activeTab == index;
     return Expanded(
       child: GestureDetector(
-        onTap: () => provider.setActiveTab(index),
+        onTap: () => context.read<CalculatorBloc>().add(ChangeTabEvent(index)),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -144,22 +149,22 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActiveTabContent(CalculatorProvider provider, BuildContext context) {
-    switch (provider.activeTab) {
+  Widget _buildActiveTabContent(BuildContext context, CalculatorState state) {
+    switch (state.activeTab) {
       case 0:
-        return _buildCompoundInterestTab(provider, context);
+        return _buildCompoundInterestTab(context, state);
       case 1:
-        return _buildSavingsGoalTab(provider, context);
+        return _buildSavingsGoalTab(context, state);
       case 2:
-        return _buildRetirementTab(provider, context);
+        return _buildRetirementTab(context, state);
       default:
         return const SizedBox.shrink();
     }
   }
 
   // --- TAB 1: COMPOUND INTEREST ---
-  Widget _buildCompoundInterestTab(CalculatorProvider provider, BuildContext context) {
-    final result = provider.ciResult;
+  Widget _buildCompoundInterestTab(BuildContext context, CalculatorState state) {
+    final result = state.ciResult;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -183,44 +188,52 @@ class DashboardScreen extends StatelessWidget {
               
               CustomSlider(
                 title: 'เงินต้นเริ่มต้น (Initial Principal)',
-                value: provider.ciInitialPrincipal,
+                value: state.ciInitialPrincipal,
                 min: 0,
                 max: 5000000,
                 unit: 'บาท',
                 isCurrency: true,
-                onChanged: (val) => provider.updateCI(initialPrincipal: (val / 5000).round() * 5000),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateCIEvent(initialPrincipal: (val / 5000).round() * 5000.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'เงินฝากรายเดือน (Monthly Savings)',
-                value: provider.ciMonthlyContribution,
+                value: state.ciMonthlyContribution,
                 min: 0,
                 max: 100000,
                 unit: 'บาท',
                 isCurrency: true,
-                onChanged: (val) => provider.updateCI(monthlyContribution: (val / 500).round() * 500),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateCIEvent(monthlyContribution: (val / 500).round() * 500.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'อัตราดอกเบี้ยต่อปี (Annual Rate)',
-                value: provider.ciAnnualRate,
+                value: state.ciAnnualRate,
                 min: 0.0,
                 max: 20.0,
                 unit: '%',
                 decimalPlaces: 2,
-                onChanged: (val) => provider.updateCI(annualRate: double.parse(val.toStringAsFixed(2))),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateCIEvent(annualRate: double.parse(val.toStringAsFixed(2))),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'ระยะเวลาลงทุน (Years)',
-                value: provider.ciYears.toDouble(),
+                value: state.ciYears.toDouble(),
                 min: 1,
                 max: 50,
                 unit: 'ปี',
-                onChanged: (val) => provider.updateCI(years: val.round()),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateCIEvent(years: val.round()),
+                    ),
               ),
               const SizedBox(height: 16),
               
@@ -243,7 +256,7 @@ class DashboardScreen extends StatelessWidget {
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<int>(
-                              value: provider.ciFrequency,
+                              value: state.ciFrequency,
                               isExpanded: true,
                               items: const [
                                 DropdownMenuItem(value: 1, child: Text('ทุกปี (Annually)', style: TextStyle(fontSize: 13))),
@@ -251,7 +264,9 @@ class DashboardScreen extends StatelessWidget {
                                 DropdownMenuItem(value: 12, child: Text('ทุกเดือน (Monthly)', style: TextStyle(fontSize: 13))),
                                 DropdownMenuItem(value: 365, child: Text('ทุกวัน (Daily)', style: TextStyle(fontSize: 13))),
                               ],
-                              onChanged: (val) => provider.updateCI(frequency: val),
+                              onChanged: (val) => context.read<CalculatorBloc>().add(
+                                    UpdateCIEvent(frequency: val),
+                                  ),
                             ),
                           ),
                         ),
@@ -277,12 +292,14 @@ class DashboardScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => provider.updateCI(timingBeginning: true),
+                                  onTap: () => context.read<CalculatorBloc>().add(
+                                        const UpdateCIEvent(timingBeginning: true),
+                                      ),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: provider.ciTimingBeginning
+                                      color: state.ciTimingBeginning
                                           ? const Color(0xFF6366F1)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
@@ -292,7 +309,7 @@ class DashboardScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: provider.ciTimingBeginning
+                                        color: state.ciTimingBeginning
                                             ? Colors.white
                                             : (isDark ? Colors.grey[400] : Colors.grey[600]),
                                       ),
@@ -302,12 +319,14 @@ class DashboardScreen extends StatelessWidget {
                               ),
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => provider.updateCI(timingBeginning: false),
+                                  onTap: () => context.read<CalculatorBloc>().add(
+                                        const UpdateCIEvent(timingBeginning: false),
+                                      ),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      color: !provider.ciTimingBeginning
+                                      color: !state.ciTimingBeginning
                                           ? const Color(0xFF6366F1)
                                           : Colors.transparent,
                                       borderRadius: BorderRadius.circular(12),
@@ -317,7 +336,7 @@ class DashboardScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: !provider.ciTimingBeginning
+                                        color: !state.ciTimingBeginning
                                             ? Colors.white
                                             : (isDark ? Colors.grey[400] : Colors.grey[600]),
                                       ),
@@ -352,10 +371,10 @@ class DashboardScreen extends StatelessWidget {
         // Result Card
         ResultCard(
           finalBalance: result.finalBalance,
-          totalPrincipal: result.totalContributions + provider.ciInitialPrincipal,
+          totalPrincipal: result.totalContributions + state.ciInitialPrincipal,
           totalInterest: result.totalInterest,
           subtitleText: 'เงินฝากต่อเดือน',
-          subtitleValue: '${_formatCurrency(provider.ciMonthlyContribution)} / เดือน',
+          subtitleValue: '${_formatCurrency(state.ciMonthlyContribution)} / เดือน',
         ),
         const SizedBox(height: 20),
 
@@ -384,7 +403,7 @@ class DashboardScreen extends StatelessWidget {
               GrowthChart(
                 type: ChartType.standard,
                 standardBreakdown: result.yearlyBreakdown,
-                initialPrincipal: provider.ciInitialPrincipal,
+                initialPrincipal: state.ciInitialPrincipal,
               ),
             ],
           ),
@@ -414,8 +433,8 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // --- TAB 2: SAVINGS GOAL ---
-  Widget _buildSavingsGoalTab(CalculatorProvider provider, BuildContext context) {
-    final result = provider.sgResult;
+  Widget _buildSavingsGoalTab(BuildContext context, CalculatorState state) {
+    final result = state.sgResult;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
@@ -439,44 +458,52 @@ class DashboardScreen extends StatelessWidget {
               
               CustomSlider(
                 title: 'เป้าหมายเงินออม (Target Amount)',
-                value: provider.sgTargetAmount,
+                value: state.sgTargetAmount,
                 min: 50000,
                 max: 20000000,
                 unit: 'บาท',
                 isCurrency: true,
-                onChanged: (val) => provider.updateSG(targetAmount: (val / 10000).round() * 10000),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateSGEvent(targetAmount: (val / 10000).round() * 10000.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'เงินออมเริ่มต้นที่มีแล้ว (Initial Savings)',
-                value: provider.sgInitialPrincipal,
+                value: state.sgInitialPrincipal,
                 min: 0,
                 max: 5000000,
                 unit: 'บาท',
                 isCurrency: true,
-                onChanged: (val) => provider.updateSG(initialPrincipal: (val / 5000).round() * 5000),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateSGEvent(initialPrincipal: (val / 5000).round() * 5000.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'อัตราผลตอบแทนคาดหวังต่อปี (Annual Yield)',
-                value: provider.sgExpectedReturn,
+                value: state.sgExpectedReturn,
                 min: 0.0,
                 max: 20.0,
                 unit: '%',
                 decimalPlaces: 2,
-                onChanged: (val) => provider.updateSG(expectedReturn: double.parse(val.toStringAsFixed(2))),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateSGEvent(expectedReturn: double.parse(val.toStringAsFixed(2))),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'ระยะเวลาบรรลุเป้าหมาย (Years)',
-                value: provider.sgYears.toDouble(),
+                value: state.sgYears.toDouble(),
                 min: 1,
                 max: 40,
                 unit: 'ปี',
-                onChanged: (val) => provider.updateSG(years: val.round()),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateSGEvent(years: val.round()),
+                    ),
               ),
               const SizedBox(height: 16),
               
@@ -496,12 +523,14 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: InkWell(
-                            onTap: () => provider.updateSG(timingBeginning: true),
+                            onTap: () => context.read<CalculatorBloc>().add(
+                                  const UpdateSGEvent(timingBeginning: true),
+                                ),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: provider.sgTimingBeginning
+                                color: state.sgTimingBeginning
                                     ? const Color(0xFF6366F1)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
@@ -511,7 +540,7 @@ class DashboardScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: provider.sgTimingBeginning
+                                  color: state.sgTimingBeginning
                                       ? Colors.white
                                       : (isDark ? Colors.grey[400] : Colors.grey[600]),
                                 ),
@@ -521,12 +550,14 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         Expanded(
                           child: InkWell(
-                            onTap: () => provider.updateSG(timingBeginning: false),
+                            onTap: () => context.read<CalculatorBloc>().add(
+                                  const UpdateSGEvent(timingBeginning: false),
+                                ),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: !provider.sgTimingBeginning
+                                color: !state.sgTimingBeginning
                                     ? const Color(0xFF6366F1)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
@@ -536,7 +567,7 @@ class DashboardScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: !provider.sgTimingBeginning
+                                  color: !state.sgTimingBeginning
                                       ? Colors.white
                                       : (isDark ? Colors.grey[400] : Colors.grey[600]),
                                 ),
@@ -569,10 +600,10 @@ class DashboardScreen extends StatelessWidget {
         ResultCard(
           title: 'ยอดเงินออมต่อเดือนที่ต้องเก็บเพิ่ม',
           finalBalance: result.requiredMonthlyContribution,
-          totalPrincipal: result.totalContributions + provider.sgInitialPrincipal,
+          totalPrincipal: result.totalContributions + state.sgInitialPrincipal,
           totalInterest: result.totalInterest,
           subtitleText: 'เป้าหมายออมรวม',
-          subtitleValue: _formatCurrency(provider.sgTargetAmount),
+          subtitleValue: _formatCurrency(state.sgTargetAmount),
         ),
         const SizedBox(height: 20),
 
@@ -601,7 +632,7 @@ class DashboardScreen extends StatelessWidget {
               GrowthChart(
                 type: ChartType.standard,
                 standardBreakdown: result.yearlyBreakdown,
-                initialPrincipal: provider.sgInitialPrincipal,
+                initialPrincipal: state.sgInitialPrincipal,
               ),
             ],
           ),
@@ -615,13 +646,13 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // --- TAB 3: RETIREMENT ---
-  Widget _buildRetirementTab(CalculatorProvider provider, BuildContext context) {
-    final result = provider.retResult;
+  Widget _buildRetirementTab(BuildContext context, CalculatorState state) {
+    final result = state.retResult;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Calculate total principal and interest for retirement at retirement age
-    double totalPrincipal = provider.retCurrentSavings;
-    int preRetYears = provider.retRetirementAge - provider.retCurrentAge;
+    double totalPrincipal = state.retCurrentSavings;
+    int preRetYears = state.retRetirementAge - state.retCurrentAge;
     if (preRetYears > 0) {
       totalPrincipal += result.requiredMonthlySavings * preRetYears * 12;
     }
@@ -653,22 +684,26 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: CustomSlider(
                       title: 'อายุปัจจุบัน',
-                      value: provider.retCurrentAge.toDouble(),
+                      value: state.retCurrentAge.toDouble(),
                       min: 15,
                       max: 75,
                       unit: 'ปี',
-                      onChanged: (val) => provider.updateRetirement(currentAge: val.round()),
+                      onChanged: (val) => context.read<CalculatorBloc>().add(
+                            UpdateRetirementEvent(currentAge: val.round()),
+                          ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: CustomSlider(
                       title: 'อายุเกษียณ',
-                      value: provider.retRetirementAge.toDouble(),
+                      value: state.retRetirementAge.toDouble(),
                       min: 40,
                       max: 85,
                       unit: 'ปี',
-                      onChanged: (val) => provider.updateRetirement(retirementAge: val.round()),
+                      onChanged: (val) => context.read<CalculatorBloc>().add(
+                            UpdateRetirementEvent(retirementAge: val.round()),
+                          ),
                     ),
                   ),
                 ],
@@ -677,44 +712,52 @@ class DashboardScreen extends StatelessWidget {
               
               CustomSlider(
                 title: 'อายุขัยคาดเดา (Life Expectancy)',
-                value: provider.retLifeExpectancy.toDouble(),
+                value: state.retLifeExpectancy.toDouble(),
                 min: 60,
                 max: 100,
                 unit: 'ปี',
-                onChanged: (val) => provider.updateRetirement(lifeExpectancy: val.round()),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateRetirementEvent(lifeExpectancy: val.round()),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'ค่าใช้จ่ายวันนี้ (หลังเกษียณต่อเดือน)',
-                value: provider.retMonthlyExpenseToday,
+                value: state.retMonthlyExpenseToday,
                 min: 5000,
                 max: 300000,
                 unit: 'บาท/เดือน',
                 isCurrency: true,
-                onChanged: (val) => provider.updateRetirement(monthlyExpenseToday: (val / 1000).round() * 1000),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateRetirementEvent(monthlyExpenseToday: (val / 1000).round() * 1000.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'เงินเก็บที่มีอยู่ ณ ตอนนี้',
-                value: provider.retCurrentSavings,
+                value: state.retCurrentSavings,
                 min: 0,
                 max: 10000000,
                 unit: 'บาท',
                 isCurrency: true,
-                onChanged: (val) => provider.updateRetirement(currentSavings: (val / 5000).round() * 5000),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateRetirementEvent(currentSavings: (val / 5000).round() * 5000.0),
+                    ),
               ),
               const SizedBox(height: 12),
               
               CustomSlider(
                 title: 'เงินเฟ้อคาดหวังเฉลี่ยต่อปี',
-                value: provider.retInflationRate,
+                value: state.retInflationRate,
                 min: 0.0,
                 max: 8.0,
                 unit: '%',
                 decimalPlaces: 1,
-                onChanged: (val) => provider.updateRetirement(inflationRate: double.parse(val.toStringAsFixed(1))),
+                onChanged: (val) => context.read<CalculatorBloc>().add(
+                      UpdateRetirementEvent(inflationRate: double.parse(val.toStringAsFixed(1))),
+                    ),
               ),
               const SizedBox(height: 12),
               
@@ -723,24 +766,28 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: CustomSlider(
                       title: 'ผลตอบแทนก่อนเกษียณ',
-                      value: provider.retPreReturn,
+                      value: state.retPreReturn,
                       min: 0.0,
                       max: 15.0,
                       unit: '%',
                       decimalPlaces: 1,
-                      onChanged: (val) => provider.updateRetirement(preReturn: double.parse(val.toStringAsFixed(1))),
+                      onChanged: (val) => context.read<CalculatorBloc>().add(
+                            UpdateRetirementEvent(preReturn: double.parse(val.toStringAsFixed(1))),
+                          ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: CustomSlider(
                       title: 'ผลตอบแทนหลังเกษียณ',
-                      value: provider.retPostReturn,
+                      value: state.retPostReturn,
                       min: 0.0,
                       max: 10.0,
                       unit: '%',
                       decimalPlaces: 1,
-                      onChanged: (val) => provider.updateRetirement(postReturn: double.parse(val.toStringAsFixed(1))),
+                      onChanged: (val) => context.read<CalculatorBloc>().add(
+                            UpdateRetirementEvent(postReturn: double.parse(val.toStringAsFixed(1))),
+                          ),
                     ),
                   ),
                 ],
@@ -782,12 +829,12 @@ class DashboardScreen extends StatelessWidget {
                         children: [
                           const TextSpan(text: 'ค่าใช้จ่ายวันนี้ '),
                           TextSpan(
-                            text: _formatCurrency(provider.retMonthlyExpenseToday),
+                            text: _formatCurrency(state.retMonthlyExpenseToday),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const TextSpan(text: ' ในอีก '),
                           TextSpan(
-                            text: '${provider.retRetirementAge - provider.retCurrentAge} ปี',
+                            text: '${state.retRetirementAge - state.retCurrentAge} ปี',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const TextSpan(text: ' ข้างหน้า จะกลายเป็น '),

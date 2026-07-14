@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-import '../models/compound_interest_model.dart';
-import '../models/retirement_model.dart';
+import '../../domain/models/compound_interest_model.dart';
+import '../../domain/models/retirement_model.dart';
 
 enum ChartType {
   standard, // CI or SG

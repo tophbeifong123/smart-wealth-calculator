@@ -61,9 +61,7 @@ class AppTheme {
       colorScheme: const ColorScheme.dark(
         primary: primary,
         secondary: success,
-        background: bgDark,
         surface: cardDark,
-        onBackground: textPrimaryDark,
         onSurface: textPrimaryDark,
       ),
       textTheme: GoogleFonts.promptTextTheme(ThemeData.dark().textTheme).copyWith(
@@ -116,9 +114,7 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: primary,
         secondary: success,
-        background: bgLight,
         surface: cardLight,
-        onBackground: textPrimaryLight,
         onSurface: textPrimaryLight,
       ),
       textTheme: GoogleFonts.promptTextTheme(ThemeData.light().textTheme).copyWith(

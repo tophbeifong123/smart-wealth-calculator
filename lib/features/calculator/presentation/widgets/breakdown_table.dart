@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/compound_interest_model.dart';
-import '../models/retirement_model.dart';
+import '../../domain/models/compound_interest_model.dart';
+import '../../domain/models/retirement_model.dart';
 import 'custom_card.dart';
 
 class BreakdownTable extends StatefulWidget {
